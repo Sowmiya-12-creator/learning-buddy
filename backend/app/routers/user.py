@@ -89,3 +89,15 @@ def get_profile(current_user=Depends(get_current_user)):
         "name": user["name"],
         "email": user["email"]
     }
+
+
+@router.delete("/users/profile")
+def delete_account(current_user=Depends(get_current_user)):
+
+    users_collection.delete_one(
+        {"email": current_user["email"]}
+    )
+
+    return {
+        "message": "Account Deleted Successfully"
+    }
