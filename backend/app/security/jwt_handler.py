@@ -1,7 +1,12 @@
+import os
 from datetime import datetime, timedelta
+
+from dotenv import load_dotenv
 from jose import jwt, JWTError
 
-SECRET_KEY = "learning_buddy_secret_key"
+load_dotenv()
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
