@@ -1,84 +1,110 @@
-from app.schemas.quiz import QuizQuestion
+import os
+
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+
+from app.schemas.quiz import QuizResponse
 
 
-def generate_quiz(topic: str, number_of_questions: int, difficulty: str):
+load_dotenv()
 
-    quiz = []
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
+
+
+def generate_quiz(
+    topic: str,
+    number_of_questions: int,
+    difficulty: str,
+    learning_level: str,
+    preferred_language: str
+):
 
     if difficulty == "mixed":
+        difficulty_instruction = """
+Create a balanced mixture of Easy, Medium, and Hard questions.
 
-        quiz.extend([
-            QuizQuestion(
-                difficulty="Easy",
-                question=f"What is {topic}?",
-                options=[
-                    "Algorithm",
-                    "Programming Language",
-                    "Database",
-                    "Operating System"
-                ],
-                answer="Algorithm"
-            ),
+If 6 questions are requested:
+- 2 Easy
+- 2 Medium
+- 2 Hard
 
-            QuizQuestion(
-                difficulty="Easy",
-                question=f"Why do we use {topic}?",
-                options=[
-                    "To solve problems",
-                    "To cook food",
-                    "To draw pictures",
-                    "To edit videos"
-                ],
-                answer="To solve problems"
-            ),
+For other question counts, distribute the questions as evenly as possible
+between Easy, Medium, and Hard.
+"""
+    else:
+        difficulty_instruction = f"""
+All questions must have {difficulty} difficulty.
+"""
 
-            QuizQuestion(
-                difficulty="Medium",
-                question=f"What is the time complexity of {topic}?",
-                options=[
-                    "O(n)",
-                    "O(log n)",
-                    "O(n²)",
-                    "O(1)"
-                ],
-                answer="O(log n)"
-            ),
+    prompt = f"""
+You are the quiz generator for Learning Buddy,
+an educational platform for learners of all ages.
 
-            QuizQuestion(
-                difficulty="Medium",
-                question=f"When should {topic} be used?",
-                options=[
-                    "When data is sorted",
-                    "For images",
-                    "For music",
-                    "For networking"
-                ],
-                answer="When data is sorted"
-            ),
+LEARNER PROFILE:
+Learning Level: {learning_level}
+Preferred Language: {preferred_language}
 
-            QuizQuestion(
-                difficulty="Hard",
-                question=f"What is the limitation of {topic}?",
-                options=[
-                    "Requires sorted data",
-                    "Uses no memory",
-                    "Works only on strings",
-                    "Cannot search"
-                ],
-                answer="Requires sorted data"
-            ),
+QUIZ REQUIREMENTS:
+Topic: {topic}
+Number of Questions: {number_of_questions}
+Requested Difficulty: {difficulty}
 
-            QuizQuestion(
-                difficulty="Hard",
-                question=f"Which scenario best suits {topic}?",
-                options=[
-                    "Searching sorted data",
-                    "Playing games",
-                    "Editing videos",
-                    "Drawing images"
-                ],
-                answer="Searching sorted data"
+{difficulty_instruction}
+
+IMPORTANT RULES:
+
+1. Generate exactly {number_of_questions} questions.
+
+2. Questions must be appropriate for the learner's learning level.
+
+3. Use {preferred_language} as the primary language.
+
+4. Every question must contain exactly 4 options.
+
+5. Only one option must be correct.
+
+6. The answer must exactly match one of the four options.
+
+7. Questions must genuinely test the topic "{topic}".
+
+8. Do not create unrelated questions.
+
+9. For young learners such as LKG or UKG:
+   - Use extremely simple words.
+   - Use familiar examples.
+   - Avoid advanced terminology.
+   - Keep questions short.
+
+10. For school students:
+    - Use age-appropriate academic questions.
+
+11. For college students:
+    - Use conceptual and application-oriented questions.
+
+12. For adults or professionals:
+    - Prefer practical and real-world questions.
+"""
+
+    try:
+
+        response = client.models.generate_content(
+            model="gemini-3.6-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=QuizResponse
             )
-        ])
+        )
 
-    return quiz[:number_of_questions]
+        result = QuizResponse.model_validate_json(
+            response.text
+        )
+
+        return result.quiz
+
+    except Exception as e:
+        print(f"Quiz generation error: {e}")
+        return []

@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Literal
 
 
 class QuizRequest(BaseModel):
     topic: str
-    number_of_questions: int
+    number_of_questions: int = Field(ge=1, le=20)
     difficulty: Literal["easy", "medium", "hard", "mixed"]
 
 
