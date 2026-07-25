@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Literal
 
 
@@ -26,7 +26,10 @@ class OnboardingRequest(BaseModel):
         "Learn as a Hobby"
     ]
 
-    daily_study_time: int
+    daily_study_time: int = Field(
+        ge=10,
+        le=480
+    )
 
 
 class OnboardingResponse(BaseModel):
