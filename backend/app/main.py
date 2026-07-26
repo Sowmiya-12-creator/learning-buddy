@@ -8,6 +8,7 @@ from app.routers.progress import router as progress_router
 from app.routers.flashcard import router as flashcard_router
 from app.routers.study_planner import router as study_planner_router
 from app.routers.focus import router as focus_router
+from app.routers.chat import router as chat_router
 
 
 app = FastAPI(title="Learning Buddy Backend")
@@ -21,6 +22,7 @@ app.include_router(progress_router)
 app.include_router(flashcard_router)
 app.include_router(study_planner_router)
 app.include_router(focus_router)
+app.include_router(chat_router)
 
 
 @app.get("/")
