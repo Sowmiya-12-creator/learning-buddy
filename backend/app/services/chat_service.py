@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
+import re
 
 from app.database.connection import chat_sessions_collection
 
@@ -108,6 +109,48 @@ def get_chat_history(user_email: str):
 
     return {
         "sessions": history
+    }
+
+
+def search_chat_history(
+    user_email: str,
+    query: str
+):
+
+    search_query = query.strip()
+
+    if not search_query:
+        return {
+            "sessions": []
+        }
+
+    escaped_query = re.escape(search_query)
+
+    sessions = chat_sessions_collection.find(
+        {
+            "user_email": user_email,
+            "title": {
+                "$regex": escaped_query,
+                "$options": "i"
+            }
+        }
+    ).sort("updated_at", -1)
+
+    results = []
+
+    for session in sessions:
+
+        results.append(
+            {
+                "session_id": session["session_id"],
+                "title": session["title"],
+                "started_at": session["started_at"].isoformat(),
+                "updated_at": session["updated_at"].isoformat()
+            }
+        )
+
+    return {
+        "sessions": results
     }
 
 

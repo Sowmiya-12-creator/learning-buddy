@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies.auth import get_current_user
 from app.schemas.chat import (
@@ -11,6 +11,7 @@ from app.schemas.chat import (
 from app.services.chat_service import (
     create_chat_session,
     get_chat_history,
+    search_chat_history,
     get_chat_session,
     delete_chat_session
 )
@@ -46,6 +47,24 @@ def chat_history(
 
     return get_chat_history(
         user_email=current_user["email"]
+    )
+
+
+@router.get(
+    "/chat/search",
+    response_model=ChatHistoryResponse
+)
+def search_chats(
+    query: str = Query(
+        ...,
+        min_length=1
+    ),
+    current_user=Depends(get_current_user)
+):
+
+    return search_chat_history(
+        user_email=current_user["email"],
+        query=query
     )
 
 
