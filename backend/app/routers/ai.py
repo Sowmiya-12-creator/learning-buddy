@@ -5,7 +5,8 @@ from app.schemas.ai_response import AIResponse
 from app.services.ai_service import generate_ai_response
 from app.services.chat_service import (
     add_chat_message,
-    get_chat_session
+    get_chat_session,
+    update_chat_title
 )
 from app.dependencies.auth import get_current_user
 from app.database.connection import users_collection
@@ -111,6 +112,14 @@ def ask_ai(
             topic=ai_response.topic,
             visual_steps=visual_steps,
             narration=ai_response.narration
+        )
+
+        # Automatically rename "New Chat"
+        # using the topic from the first AI response.
+        update_chat_title(
+            session_id=request.session_id,
+            user_email=user_email,
+            title=ai_response.topic
         )
 
     return ai_response

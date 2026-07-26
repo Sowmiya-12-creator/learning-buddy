@@ -173,3 +173,25 @@ def delete_chat_session(
     )
 
     return result.deleted_count > 0
+
+
+def update_chat_title(
+    session_id: str,
+    user_email: str,
+    title: str
+):
+
+    result = chat_sessions_collection.update_one(
+        {
+            "session_id": session_id,
+            "user_email": user_email,
+            "title": "New Chat"
+        },
+        {
+            "$set": {
+                "title": title
+            }
+        }
+    )
+
+    return result.modified_count > 0
