@@ -45,7 +45,9 @@ def add_chat_message(
     text: str,
     topic: str | None = None,
     visual_steps: list | None = None,
-    narration: str | None = None
+    narration: str | None = None,
+    avatar_sections: list | None = None,
+    visual_teaching: dict | None = None
 ):
 
     session = chat_sessions_collection.find_one(
@@ -67,6 +69,8 @@ def add_chat_message(
         "topic": topic,
         "visual_steps": visual_steps or [],
         "narration": narration,
+        "avatar_sections": avatar_sections or [],
+        "visual_teaching": visual_teaching,
         "timestamp": now
     }
 
@@ -184,6 +188,13 @@ def get_chat_session(
                     []
                 ),
                 "narration": message.get("narration"),
+                "avatar_sections": message.get(
+                    "avatar_sections",
+                    []
+                ),
+                "visual_teaching": message.get(
+                    "visual_teaching"
+                ),
                 "timestamp": message[
                     "timestamp"
                 ].isoformat()

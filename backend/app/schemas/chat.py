@@ -18,6 +18,46 @@ class ChatVisualStep(BaseModel):
     description: str
 
 
+class ChatAvatarSection(BaseModel):
+    speech: str
+
+    gesture: Literal[
+        "welcome",
+        "explain",
+        "point_to_visual",
+        "encourage",
+        "think",
+        "conclude",
+        "none"
+    ] = "explain"
+
+    pause_after: bool = False
+
+
+class ChatVisualTeaching(BaseModel):
+    visual_type: Literal[
+        "diagram",
+        "flowchart",
+        "mind_map",
+        "timeline",
+        "table",
+        "comparison",
+        "step_animation",
+        "process",
+        "illustration",
+        "graph",
+        "sequence",
+        "other"
+    ]
+
+    title: str
+    description: str
+
+    steps: list[ChatVisualStep] = Field(
+        default_factory=list
+    )
+
+
 class ChatMessage(BaseModel):
     message_id: str
 
@@ -35,6 +75,12 @@ class ChatMessage(BaseModel):
     )
 
     narration: str | None = None
+
+    avatar_sections: list[ChatAvatarSection] = Field(
+        default_factory=list
+    )
+
+    visual_teaching: ChatVisualTeaching | None = None
 
     timestamp: str
 

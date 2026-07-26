@@ -104,6 +104,15 @@ def ask_ai(
             for step in ai_response.visual_steps
         ]
 
+        avatar_sections = [
+            section.model_dump()
+            for section in ai_response.avatar_sections
+        ]
+
+        visual_teaching = (
+            ai_response.visual_teaching.model_dump()
+        )
+
         add_chat_message(
             session_id=request.session_id,
             user_email=user_email,
@@ -111,7 +120,9 @@ def ask_ai(
             text=ai_response.explanation,
             topic=ai_response.topic,
             visual_steps=visual_steps,
-            narration=ai_response.narration
+            narration=ai_response.narration,
+            avatar_sections=avatar_sections,
+            visual_teaching=visual_teaching
         )
 
         # Automatically rename "New Chat"
