@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.user import router as user_router
 from app.routers.ai import router as ai_router
@@ -12,8 +13,36 @@ from app.routers.chat import router as chat_router
 from app.routers.tts import router as tts_router
 
 
-app = FastAPI(title="Learning Buddy Backend")
+app = FastAPI(
+    title="Learning Buddy Backend"
+)
 
+
+# -------------------------------------------------
+# CORS Configuration
+# -------------------------------------------------
+# Allows the Learning Buddy Next.js frontend
+# running on port 3000 to communicate with FastAPI.
+# -------------------------------------------------
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# -------------------------------------------------
+# Routers
+# -------------------------------------------------
 
 app.include_router(user_router)
 app.include_router(ai_router)
@@ -26,6 +55,10 @@ app.include_router(focus_router)
 app.include_router(chat_router)
 app.include_router(tts_router)
 
+
+# -------------------------------------------------
+# Home Route
+# -------------------------------------------------
 
 @app.get("/")
 def home():

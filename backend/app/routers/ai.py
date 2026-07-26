@@ -27,10 +27,18 @@ def ask_ai(
         {"email": user_email}
     )
 
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
     conversation_context = None
 
-    # If a chat session is provided,
-    # retrieve its previous conversation.
+    # ========================================================
+    # Load Previous Conversation
+    # ========================================================
+
     if request.session_id:
 
         chat_session = get_chat_session(
@@ -69,7 +77,7 @@ def ask_ai(
                 context_lines
             )
 
-        # Save the new user question.
+        # Save learner's new message
         add_chat_message(
             session_id=request.session_id,
             user_email=user_email,
@@ -77,8 +85,10 @@ def ask_ai(
             text=request.question
         )
 
-    # Generate personalized AI response
-    # using previous conversation context.
+    # ========================================================
+    # Generate AI Response
+    # ========================================================
+
     ai_response = generate_ai_response(
         question=request.question,
         learning_level=user.get(
@@ -96,28 +106,96 @@ def ask_ai(
         conversation_context=conversation_context
     )
 
-    # Save the AI response.
+    # ========================================================
+    # Save AI Response
+    # ========================================================
+
     if request.session_id:
+
+        # ----------------------------------------------------
+        # Visual Steps
+        # ----------------------------------------------------
 
         visual_steps = [
             step.model_dump()
-            for step in ai_response.visual_steps
+            for step in (
+                ai_response.visual_steps or []
+            )
         ]
+
+        # ----------------------------------------------------
+        # Avatar Sections
+        # ----------------------------------------------------
 
         avatar_sections = [
             section.model_dump()
-            for section in ai_response.avatar_sections
+            for section in (
+                ai_response.avatar_sections or []
+            )
         ]
+
+        # ----------------------------------------------------
+        # Visual Teaching
+        #
+        # May be None for conversation or specific requests
+        # such as "give only an example".
+        # ----------------------------------------------------
 
         visual_teaching = (
             ai_response.visual_teaching.model_dump()
+            if ai_response.visual_teaching
+            else None
         )
+
+        # ----------------------------------------------------
+        # Determine Main Chat Text
+        #
+        # Explanation is no longer always required.
+        #
+        # Example-only:
+        #   use example
+        #
+        # Key-points-only:
+        #   use key points
+        #
+        # Visual-only:
+        #   use visual description
+        # ----------------------------------------------------
+
+        if ai_response.explanation:
+
+            chat_text = ai_response.explanation
+
+        elif ai_response.example:
+
+            chat_text = ai_response.example
+
+        elif ai_response.key_points:
+
+            chat_text = "\n".join(
+                f"• {point}"
+                for point in ai_response.key_points
+            )
+
+        elif ai_response.visual_teaching:
+
+            chat_text = (
+                ai_response.visual_teaching.description
+            )
+
+        else:
+
+            chat_text = ""
+
+        # ----------------------------------------------------
+        # Save AI Message
+        # ----------------------------------------------------
 
         add_chat_message(
             session_id=request.session_id,
             user_email=user_email,
             sender="ai",
-            text=ai_response.explanation,
+            text=chat_text,
             topic=ai_response.topic,
             visual_steps=visual_steps,
             narration=ai_response.narration,
@@ -125,12 +203,24 @@ def ask_ai(
             visual_teaching=visual_teaching
         )
 
-        # Automatically rename "New Chat"
-        # using the topic from the first AI response.
-        update_chat_title(
-            session_id=request.session_id,
-            user_email=user_email,
-            title=ai_response.topic
-        )
+        # ====================================================
+        # Update Chat Title
+        #
+        # Only update when AI provides a real topic.
+        # Conversation messages such as "Hi" and "Thank you"
+        # may have topic=None.
+        # ====================================================
 
-    return ai_response
+        if ai_response.topic:
+
+            update_chat_title(
+                session_id=request.session_id,
+                user_email=user_email,
+                title=ai_response.topic
+            )
+
+    # ========================================================
+    # Return Response to Frontend
+    # ========================================================
+
+    return ai_response                

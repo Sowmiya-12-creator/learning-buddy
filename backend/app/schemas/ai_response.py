@@ -3,6 +3,13 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+ResponseMode = Literal[
+    "teaching",
+    "follow_up",
+    "conversation"
+]
+
+
 class VisualStep(BaseModel):
     step: int
     title: str
@@ -42,7 +49,6 @@ class VisualTeaching(BaseModel):
     ]
 
     title: str
-
     description: str
 
     steps: list[VisualStep] = Field(
@@ -52,37 +58,99 @@ class VisualTeaching(BaseModel):
 
 
 class AIResponse(BaseModel):
-    topic: str
 
-    explanation: str
+    # =========================================================
+    # RESPONSE MODE
+    # =========================================================
 
-    example: str
+    response_mode: ResponseMode
+
+
+    # =========================================================
+    # WRITTEN RESPONSE
+    # =========================================================
+
+    explanation: str | None = None
+
+
+    # =========================================================
+    # TOPIC
+    # =========================================================
+
+    topic: str | None = None
+
+
+    # =========================================================
+    # OPTIONAL LEARNING CONTENT
+    # =========================================================
+
+    example: str | None = None
 
     key_points: list[str] = Field(
-        min_length=1,
+        default_factory=list,
         max_length=5
     )
 
-    practice_question: str
+    practice_question: str | None = None
 
-    # Existing visual steps are preserved
-    # so current chat storage continues to work.
+
+    # =========================================================
+    # PROGRAMMING / CODE CONTENT
+    #
+    # Used when the learner asks for:
+    #
+    # - a program
+    # - code
+    # - an algorithm implementation
+    # - a coding example
+    #
+    # Example:
+    #
+    # "Give Java program for palindrome"
+    #
+    # code -> actual Java source code
+    # code_language -> "java"
+    # =========================================================
+
+    code: str | None = None
+
+    code_language: str | None = None
+
+
+    # =========================================================
+    # VISUAL LEARNING
+    # =========================================================
+
     visual_steps: list[VisualStep] = Field(
-        min_length=1,
+        default_factory=list,
         max_length=8
     )
 
-    # Full narration used by the existing
-    # Listen / TTS feature.
-    narration: str
+    visual_teaching: VisualTeaching | None = None
 
-    # Short virtual-teacher guidance.
-    # The avatar must not repeat the full explanation.
+
+    # =========================================================
+    # LISTEN / TTS
+    #
+    # Educational questions should provide narration.
+    #
+    # For programming questions, narration should explain
+    # what the code does instead of reading every code symbol.
+    # =========================================================
+
+    narration: str | None = None
+
+
+    # =========================================================
+    # AVATAR
+    #
+    # Educational questions should provide avatar guidance.
+    #
+    # Conversation messages such as "Hi", "Okay" and
+    # "Thank you" should normally leave this empty.
+    # =========================================================
+
     avatar_sections: list[AvatarSection] = Field(
-        min_length=1,
+        default_factory=list,
         max_length=6
     )
-
-    # Structured visual lesson chosen according
-    # to the topic and learner.
-    visual_teaching: VisualTeaching
