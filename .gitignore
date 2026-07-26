@@ -4,6 +4,9 @@ backend/__pycache__/
 *.pyc
 .env
 
+# Generated TTS Audio
+backend/generated_audio/
+
 # Node.js
 frontend/node_modules/
 frontend/.next/
