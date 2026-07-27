@@ -18,16 +18,27 @@ export type AIResponseMode =
 export type AvatarGesture =
     | "welcome"
     | "explain"
-    | "point_to_visual"
+    | "point_to_content"
     | "encourage"
     | "think"
     | "conclude"
     | "none";
 
 
+export type AvatarTargetSection =
+    | "topic"
+    | "explanation"
+    | "visual"
+    | "example"
+    | "code"
+    | "none";
+
+
 export interface AvatarSection {
     speech: string;
     gesture: AvatarGesture;
+    target_section: AvatarTargetSection;
+    target_text: string | null;
     pause_after: boolean;
 }
 
@@ -35,6 +46,7 @@ export interface AvatarSection {
 // ============================================================
 // Visual Teaching Types
 // ============================================================
+
 
 export interface VisualStep {
     step: number;

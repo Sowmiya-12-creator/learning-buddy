@@ -17,17 +17,40 @@ class VisualStep(BaseModel):
 
 
 class AvatarSection(BaseModel):
+
+    # What Learning Buddy says during this teaching segment.
     speech: str
 
+    # How the robot should behave.
     gesture: Literal[
         "welcome",
         "explain",
-        "point_to_visual",
+        "point_to_content",
         "encourage",
         "think",
         "conclude",
         "none"
     ] = "explain"
+
+    # Which part of the lesson the robot is currently teaching.
+    target_section: Literal[
+        "topic",
+        "explanation",
+        "visual",
+        "example",
+        "code",
+        "none"
+    ] = "none"
+
+    # Exact text/value from the target section that should
+    # be highlighted while this speech is being spoken.
+    #
+    # Examples:
+    # "sorted array"
+    # "middle element"
+    # "7"
+    # "while (low <= high)"
+    target_text: str | None = None
 
     pause_after: bool = False
 
@@ -151,6 +174,7 @@ class AIResponse(BaseModel):
     # =========================================================
 
     avatar_sections: list[AvatarSection] = Field(
-        default_factory=list,
-        max_length=6
-    )
+    default_factory=list,
+    max_length=20
+)
+    

@@ -16,10 +16,11 @@ import {
 
 import axios from "axios";
 
+import { useSearchParams } from "next/navigation";
+
 import AppLayout from "@/components/layout/app-layout";
 import VisualTeaching from "@/components/ai-tutor/visual-teaching";
-import TutorAudio from "@/components/ai-tutor/tutor-audio";
-import TutorAvatar from "@/components/ai-tutor/tutor-avatar";
+import LearningBuddyTeacher from "@/components/ai-tutor/learning-buddy-teacher";
 
 import {
     AIResponse,
@@ -44,6 +45,15 @@ interface DisplayMessage {
 // ============================================================
 
 export default function AITutorPage() {
+
+    const searchParams =
+        useSearchParams();
+
+    const initialQuestionHandled =
+        useRef(false);
+
+    const initialSessionHandled =
+        useRef(false);
 
     const [sessionId, setSessionId] =
         useState<string | null>(null);
@@ -167,13 +177,17 @@ export default function AITutorPage() {
     // ========================================================
 
     const handleSubmit = async (
-        event: FormEvent<HTMLFormElement>
+        event?: FormEvent<HTMLFormElement>,
+        questionOverride?: string
     ) => {
 
-        event.preventDefault();
+        event?.preventDefault();
 
         const trimmedQuestion =
-            question.trim();
+            (
+                questionOverride ??
+                question
+            ).trim();
 
         if (
             !trimmedQuestion ||
@@ -244,8 +258,6 @@ export default function AITutorPage() {
 
             // ------------------------------------------------
             // Determine Main Response Text
-            //
-            // Code-only responses may have no normal text.
             // ------------------------------------------------
 
             let responseText = "";
@@ -317,6 +329,117 @@ export default function AITutorPage() {
 
 
     // ========================================================
+    // Restore Existing Conversation
+    // ========================================================
+
+    useEffect(() => {
+
+        const existingSessionId =
+            searchParams.get("session");
+
+        if (
+            !existingSessionId ||
+            initialSessionHandled.current
+        ) {
+            return;
+        }
+
+        initialSessionHandled.current = true;
+
+
+        const restoreConversation =
+            async () => {
+
+                try {
+
+                    const session =
+                        await aiTutorService.getSession(
+                            existingSessionId
+                        );
+
+                    setSessionId(
+                        session.session_id
+                    );
+
+
+                    const restoredMessages =
+                        session.messages.map(
+                            (message) => ({
+
+                                id:
+                                    message.message_id,
+
+                                sender:
+                                    message.sender,
+
+                                text:
+                                    message.text,
+
+                                topic:
+                                    message.topic,
+
+                                visual_steps:
+                                    message.visual_steps,
+
+                                narration:
+                                    message.narration,
+
+                                avatar_sections:
+                                    message.avatar_sections,
+
+                                visual_teaching:
+                                    message.visual_teaching,
+
+                            })
+                        );
+
+
+                    setMessages(
+                        restoredMessages
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Unable to restore conversation:",
+                        error
+                    );
+                }
+            };
+
+
+        restoreConversation();
+
+    }, [searchParams]);
+
+
+    // ========================================================
+    // Question Passed From Home
+    // ========================================================
+
+    useEffect(() => {
+
+        const homeQuestion =
+            searchParams.get("question");
+
+        if (
+            !homeQuestion ||
+            initialQuestionHandled.current
+        ) {
+            return;
+        }
+
+        initialQuestionHandled.current = true;
+
+        handleSubmit(
+            undefined,
+            homeQuestion
+        );
+
+    }, [searchParams]);
+
+
+    // ========================================================
     // UI
     // ========================================================
 
@@ -324,7 +447,7 @@ export default function AITutorPage() {
 
         <AppLayout>
 
-            <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-5xl flex-col">
+            <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-6xl flex-col">
 
 
                 {/* =================================================
@@ -340,8 +463,7 @@ export default function AITutorPage() {
                         </h1>
 
                         <p className="mt-1 text-sm text-gray-400">
-                            Ask anything and learn at
-                            your own level.
+                            Ask anything and learn at your own level.
                         </p>
 
                     </div>
@@ -378,35 +500,36 @@ export default function AITutorPage() {
                     CONVERSATION
                 ================================================= */}
 
-                <div className="flex-1 space-y-5 overflow-y-auto rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                <div className="flex-1 space-y-5 overflow-y-auto rounded-3xl border border-white/10 bg-white/3 p-5">
 
 
                     {/* Empty Chat */}
 
                     {messages.length === 0 && (
 
-                        <div className="flex min-h-[380px] flex-col items-center justify-center text-center">
+                        <div className="flex min-h-95 flex-col items-center justify-center text-center">
 
                             <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/20 text-4xl">
                                 🤖
                             </div>
 
+
                             <h2 className="text-2xl font-semibold">
                                 What would you like to learn?
                             </h2>
 
+
                             <p className="mt-3 max-w-lg text-gray-400">
 
-                                Ask about technology,
-                                mathematics, history,
-                                languages, finance,
-                                everyday skills or any
-                                topic you are curious
-                                about.
+                                Ask about technology, mathematics,
+                                history, languages, finance,
+                                everyday skills or any topic you
+                                are curious about.
 
                             </p>
 
                         </div>
+
                     )}
 
 
@@ -417,13 +540,11 @@ export default function AITutorPage() {
                     {messages.map((message) => {
 
 
-                        // ---------------------------------------------
-                        // User Message
-                        // ---------------------------------------------
+                        // =============================================
+                        // USER MESSAGE
+                        // =============================================
 
-                        if (
-                            message.sender === "user"
-                        ) {
+                        if (message.sender === "user") {
 
                             return (
 
@@ -431,22 +552,21 @@ export default function AITutorPage() {
                                     key={message.id}
                                     className="ml-auto max-w-2xl rounded-2xl rounded-br-md bg-violet-600 px-5 py-4 text-white"
                                 >
+
                                     {message.text}
+
                                 </div>
+
                             );
                         }
 
-
-                        // ---------------------------------------------
-                        // AI Response
-                        // ---------------------------------------------
 
                         const response =
                             message.aiResponse;
 
 
                         // =============================================
-                        // Conversation Mode
+                        // NORMAL CONVERSATION
                         // =============================================
 
                         if (
@@ -462,23 +582,26 @@ export default function AITutorPage() {
                                 >
 
                                     <p className="leading-7 text-gray-100">
+
                                         {message.text}
+
                                     </p>
 
                                 </div>
+
                             );
                         }
 
 
                         // =============================================
-                        // Teaching / Follow-Up Mode
+                        // TEACHING / FOLLOW-UP RESPONSE
                         // =============================================
 
                         return (
 
                             <div
                                 key={message.id}
-                                className="max-w-3xl rounded-2xl rounded-bl-md border border-white/10 bg-white/5 p-5"
+                                className="w-full rounded-2xl rounded-bl-md border border-white/10 bg-white/5 p-5"
                             >
 
 
@@ -491,35 +614,28 @@ export default function AITutorPage() {
                                         {response.topic}
 
                                     </div>
+
                                 )}
 
 
-                                {/* =====================================
-                                    EXPLANATION
-                                ===================================== */}
+                                {/* Explanation */}
 
                                 {response?.explanation && (
 
                                     <p className="whitespace-pre-wrap leading-7 text-gray-100">
 
-                                        {
-                                            response.explanation
-                                        }
+                                        {response.explanation}
 
                                     </p>
+
                                 )}
 
 
-                                {/* =====================================
-                                    PROGRAMMING CODE
-                                ===================================== */}
+                                {/* Programming Code */}
 
                                 {response?.code && (
 
                                     <div className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
-
-
-                                        {/* Code Header */}
 
                                         <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3">
 
@@ -527,12 +643,10 @@ export default function AITutorPage() {
 
                                                 <Code2 className="h-4 w-4 text-violet-300" />
 
+
                                                 <span className="text-sm font-semibold uppercase tracking-wide text-gray-300">
 
-                                                    {
-                                                        response.code_language ??
-                                                        "code"
-                                                    }
+                                                    {response.code_language ?? "code"}
 
                                                 </span>
 
@@ -541,16 +655,12 @@ export default function AITutorPage() {
                                         </div>
 
 
-                                        {/* Actual Code */}
-
                                         <div className="overflow-x-auto">
 
                                             <pre className="p-5 text-sm leading-6 text-gray-100">
 
                                                 <code>
-                                                    {
-                                                        response.code
-                                                    }
+                                                    {response.code}
                                                 </code>
 
                                             </pre>
@@ -558,42 +668,44 @@ export default function AITutorPage() {
                                         </div>
 
                                     </div>
+
                                 )}
 
 
-                                {/* =====================================
-                                    LISTEN / TTS
-                                ===================================== */}
+                                {/* =================================================
+                                    NEW LEARNING BUDDY CLASSROOM
+                                ================================================= */}
 
-                                {response?.narration && (
+                                {response && (
 
-                                    <TutorAudio
-                                        narration={
-                                            response.narration
+                                    <LearningBuddyTeacher
+                                        topic={response.topic}
+                                        explanation={response.explanation}
+                                        example={response.example}
+                                        code={response.code}
+                                        codeLanguage={response.code_language}
+                                        keyPoints={
+                                            response.key_points ?? []
+                                        }
+                                        visual={
+                                            response.visual_teaching
+                                        }
+                                        sections={
+                                            response.avatar_sections ?? []
                                         }
                                     />
 
                                 )}
 
-                                {/* =====================================
-    AI TEACHER AVATAR
-===================================== */}
 
-{response?.avatar_sections &&
-    response.avatar_sections.length > 0 && (
-
-    <TutorAvatar
-        sections={
-            response.avatar_sections
-        }
-    />
-
-)}
+                                {/* =================================================
+                                    OLD COMPONENTS
+                                ================================================= */}
 
 
-                                {/* =====================================
-                                    VISUAL LEARNING
-                                ===================================== */}
+
+
+                                {/* Visual Learning */}
 
                                 {response?.visual_teaching && (
 
@@ -606,9 +718,7 @@ export default function AITutorPage() {
                                 )}
 
 
-                                {/* =====================================
-                                    EXAMPLE
-                                ===================================== */}
+                                {/* Example */}
 
                                 {response?.example && (
 
@@ -618,90 +728,88 @@ export default function AITutorPage() {
                                             Example
                                         </div>
 
+
                                         <p className="whitespace-pre-wrap leading-6 text-gray-200">
 
-                                            {
-                                                response.example
-                                            }
+                                            {response.example}
 
                                         </p>
 
                                     </div>
+
                                 )}
 
 
-                                {/* =====================================
-                                    KEY POINTS
-                                ===================================== */}
+                                {/* Key Points */}
 
                                 {response?.key_points &&
-                                    response.key_points.length >
-                                        0 && (
+                                    response.key_points.length > 0 && (
 
-                                    <div className="mt-5">
+                                        <div className="mt-5">
 
-                                        <div className="mb-3 font-semibold">
-                                            Key Points
+                                            <div className="mb-3 font-semibold">
+                                                Key Points
+                                            </div>
+
+
+                                            <ul className="space-y-2 text-gray-200">
+
+                                                {response.key_points.map(
+                                                    (
+                                                        point,
+                                                        index
+                                                    ) => (
+
+                                                        <li
+                                                            key={index}
+                                                            className="flex gap-3"
+                                                        >
+
+                                                            <span className="text-violet-400">
+                                                                •
+                                                            </span>
+
+                                                            <span>
+                                                                {point}
+                                                            </span>
+
+                                                        </li>
+
+                                                    )
+                                                )}
+
+                                            </ul>
+
                                         </div>
 
-                                        <ul className="space-y-2 text-gray-200">
-
-                                            {response.key_points.map(
-                                                (
-                                                    point,
-                                                    index
-                                                ) => (
-
-                                                    <li
-                                                        key={
-                                                            index
-                                                        }
-                                                        className="flex gap-3"
-                                                    >
-
-                                                        <span className="text-violet-400">
-                                                            •
-                                                        </span>
-
-                                                        <span>
-                                                            {point}
-                                                        </span>
-
-                                                    </li>
-
-                                                )
-                                            )}
-
-                                        </ul>
-
-                                    </div>
-                                )}
+                                    )}
 
 
-                                {/* =====================================
-                                    PRACTICE QUESTION
-                                ===================================== */}
+                                {/* Practice Question */}
 
                                 {response?.practice_question && (
 
                                     <div className="mt-5 rounded-xl border border-violet-400/20 bg-violet-500/10 p-4">
 
                                         <div className="mb-2 font-semibold text-violet-200">
+
                                             Try This
+
                                         </div>
+
 
                                         <p className="text-gray-200">
 
-                                            {
-                                                response.practice_question
-                                            }
+                                            {response.practice_question}
 
                                         </p>
 
                                     </div>
+
                                 )}
 
                             </div>
+
                         );
 
                     })}
@@ -720,6 +828,7 @@ export default function AITutorPage() {
                             Learning Buddy is thinking...
 
                         </div>
+
                     )}
 
 
@@ -742,6 +851,7 @@ export default function AITutorPage() {
                         {error}
 
                     </div>
+
                 )}
 
 
@@ -766,6 +876,7 @@ export default function AITutorPage() {
                         disabled={isSending}
                         className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-gray-500 focus:border-violet-500 disabled:opacity-60"
                     />
+
 
                     <button
                         type="submit"

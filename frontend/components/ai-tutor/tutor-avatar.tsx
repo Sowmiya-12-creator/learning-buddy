@@ -345,37 +345,39 @@ export default function TutorAvatar({
         };
 
 
-    // ========================================================
-    // Gesture
-    // ========================================================
+   // ========================================================
+// Gesture
+// ========================================================
 
-    const getGestureText = () => {
+const getGestureText = () => {
 
-        switch (section.gesture) {
+    switch (section.gesture) {
 
-            case "welcome":
-                return "👋";
+        case "welcome":
+            return "👋";
 
-            case "point_to_visual":
-                return "👉";
+        case "point_to_content":
+            return "👉";
 
-            case "think":
-                return "🤔";
+        case "think":
+            return "🤔";
 
-            case "encourage":
-                return "🌟";
+        case "encourage":
+            return "🌟";
 
-            case "conclude":
-                return "✅";
+        case "conclude":
+            return "✅";
 
-            case "explain":
-                return "💡";
+        case "explain":
+            return "💡";
 
-            default:
-                return "👩‍🏫";
-        }
-    };
+        case "none":
+            return "👩‍🏫";
 
+        default:
+            return "👩‍🏫";
+    }
+};
 
     // ========================================================
     // UI
