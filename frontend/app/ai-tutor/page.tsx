@@ -705,85 +705,8 @@ export default function AITutorPage() {
 
 
 
-                                {/* Visual Learning */}
-
-                                {response?.visual_teaching && (
-
-                                    <VisualTeaching
-                                        visual={
-                                            response.visual_teaching
-                                        }
-                                    />
-
-                                )}
-
-
-                                {/* Example */}
-
-                                {response?.example && (
-
-                                    <div className="mt-5 rounded-xl bg-blue-500/10 p-4">
-
-                                        <div className="mb-2 font-semibold text-blue-200">
-                                            Example
-                                        </div>
-
-
-                                        <p className="whitespace-pre-wrap leading-6 text-gray-200">
-
-                                            {response.example}
-
-                                        </p>
-
-                                    </div>
-
-                                )}
-
-
-                                {/* Key Points */}
-
-                                {response?.key_points &&
-                                    response.key_points.length > 0 && (
-
-                                        <div className="mt-5">
-
-                                            <div className="mb-3 font-semibold">
-                                                Key Points
-                                            </div>
-
-
-                                            <ul className="space-y-2 text-gray-200">
-
-                                                {response.key_points.map(
-                                                    (
-                                                        point,
-                                                        index
-                                                    ) => (
-
-                                                        <li
-                                                            key={index}
-                                                            className="flex gap-3"
-                                                        >
-
-                                                            <span className="text-violet-400">
-                                                                •
-                                                            </span>
-
-                                                            <span>
-                                                                {point}
-                                                            </span>
-
-                                                        </li>
-
-                                                    )
-                                                )}
-
-                                            </ul>
-
-                                        </div>
-
-                                    )}
-
+                                
+                                
 
                                 {/* Practice Question */}
 

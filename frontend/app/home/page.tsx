@@ -3,7 +3,6 @@ import Welcome from "@/components/home/welcome";
 import AICard from "@/components/home/ai-card";
 import Stats from "@/components/home/stats";
 import QuickActions from "@/components/home/quick-actions";
-import RecentChats from "@/components/home/recent-chats";
 
 export default function HomePage() {
     return (
@@ -12,7 +11,6 @@ export default function HomePage() {
             <AICard />
             <Stats />
             <QuickActions />
-            <RecentChats />
         </AppLayout>
     );
 }
