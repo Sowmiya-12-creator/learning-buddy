@@ -3,68 +3,99 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    ArrowLeft,
-    ArrowRight,
-    BookOpen,
-    BriefcaseBusiness,
-    GraduationCap,
-    Languages,
-    Loader2,
-    Sparkles,
-    Target,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  GraduationCap,
+  Languages,
+  Loader2,
+  Target,
 } from "lucide-react";
 import axios from "axios";
 
 import {
-    LearningGoal,
-    LearningLevel,
-    PreferredLanguage,
-    onboardingService,
+  LearningGoal,
+  LearningLevel,
+  PreferredLanguage,
+  onboardingService,
 } from "@/services/onboarding.service";
 
-
 const learningLevels: {
-    value: LearningLevel;
-    title: string;
-    description: string;
+  value: LearningLevel;
+  title: string;
+  description: string;
 }[] = [
-    {
-        value: "LKG",
-        title: "LKG",
-        description: "Very simple and playful learning",
-    },
-    {
-        value: "Primary",
-        title: "Primary",
-        description: "Build strong basics step by step",
-    },
-    {
-        value: "Middle School",
-        title: "Middle School",
-        description: "Clear explanations with useful examples",
-    },
-    {
-        value: "High School",
-        title: "High School",
-        description: "Deeper concepts and exam-ready learning",
-    },
-    {
-        value: "College",
-        title: "College",
-        description: "Academic, technical and practical learning",
-    },
-    {
-        value: "Professional",
-        title: "Professional",
-        description: "Career-focused and practical learning",
-    },
-    {
-        value: "Lifelong Learner",
-        title: "Lifelong Learner",
-        description: "Learn anything at your own pace",
-    },
+  {
+    value: "LKG",
+    title: "LKG",
+    description: "Begin learning through fun activities and stories.",
+  },
+  {
+    value: "UKG",
+    title: "UKG",
+    description: "Build early reading, writing and math skills.",
+  },
+  {
+    value: "Class 1",
+    title: "Class 1",
+    description: "Learn basic concepts with simple explanations.",
+  },
+  {
+    value: "Class 2",
+    title: "Class 2",
+    description: "Strengthen your fundamentals step by step.",
+  },
+  {
+    value: "Class 3",
+    title: "Class 3",
+    description: "Develop confidence through interactive learning.",
+  },
+  {
+    value: "Class 4",
+    title: "Class 4",
+    description: "Explore concepts through visuals and examples.",
+  },
+  {
+    value: "Class 5",
+    title: "Class 5",
+    description: "Build strong fundamentals for higher classes.",
+  },
+  {
+    value: "Class 6",
+    title: "Class 6",
+    description: "Understand concepts with practical examples.",
+  },
+  {
+    value: "Class 7",
+    title: "Class 7",
+    description: "Strengthen subject knowledge with visual learning.",
+  },
+  {
+    value: "Class 8",
+    title: "Class 8",
+    description: "Learn deeper concepts through AI guidance.",
+  },
+  {
+    value: "Class 9",
+    title: "Class 9",
+    description: "Master foundational concepts for board preparation.",
+  },
+  {
+    value: "Class 10",
+    title: "Class 10",
+    description: "Prepare confidently for board examinations.",
+  },
+  {
+    value: "Class 11",
+    title: "Class 11",
+    description: "Study advanced concepts with detailed explanations.",
+  },
+  {
+    value: "Class 12",
+    title: "Class 12",
+    description: "Prepare for board exams and competitive entrance tests.",
+  },
 ];
-
 
 const languages: PreferredLanguage[] = [
     "English",
@@ -73,29 +104,33 @@ const languages: PreferredLanguage[] = [
 
 
 const learningGoals: {
-    value: LearningGoal;
-    description: string;
+  value: LearningGoal;
+  description: string;
 }[] = [
-    {
-        value: "Learn New Skills",
-        description: "Develop useful new abilities",
-    },
-    {
-        value: "Prepare for Exams",
-        description: "Study concepts and prepare confidently",
-    },
-    {
-        value: "Interview Preparation",
-        description: "Prepare for technical and professional interviews",
-    },
-    {
-        value: "Improve Knowledge",
-        description: "Understand more topics deeply",
-    },
-    {
-        value: "Learn as a Hobby",
-        description: "Explore topics because you enjoy learning",
-    },
+  {
+    value: "Understand Concepts",
+    description: "Learn topics clearly with simple explanations.",
+  },
+  {
+    value: "Complete Homework",
+    description: "Get help understanding and completing homework.",
+  },
+  {
+    value: "Prepare for Exams",
+    description: "Revise lessons and prepare confidently for exams.",
+  },
+  {
+    value: "Practice Questions",
+    description: "Practice questions to improve understanding.",
+  },
+  {
+    value: "Improve Grades",
+    description: "Strengthen weak areas and improve your performance.",
+  },
+  {
+    value: "Daily Learning",
+    description: "Build a consistent learning habit every day.",
+  },
 ];
 
 
@@ -352,13 +387,11 @@ export default function OnboardingPage() {
                             <GraduationCap className="mx-auto mb-4 h-12 w-12 text-violet-400" />
 
                             <h1 className="text-3xl font-bold">
-                                What is your learning level?
+                                Which class are you studying in?
                             </h1>
 
                             <p className="mt-3 text-gray-300">
-                                This helps Learning Buddy
-                                choose the right depth and
-                                teaching style.
+                                We'll personalize every lesson based on your class and learning level.
                             </p>
                         </div>
 
@@ -476,13 +509,11 @@ export default function OnboardingPage() {
                             <Target className="mx-auto mb-4 h-12 w-12 text-violet-400" />
 
                             <h1 className="text-3xl font-bold">
-                                What do you want to achieve?
+                                How can Learning Buddy help you?
                             </h1>
 
                             <p className="mt-3 text-gray-300">
-                                We'll use your goal to
-                                make your learning
-                                experience more relevant.
+                               Choose your main goal so we can personalize your learning journey.
                             </p>
                         </div>
 
@@ -513,31 +544,21 @@ export default function OnboardingPage() {
                                                     : "border-white/10 bg-white/5 hover:bg-white/10"
                                             }`}
                                         >
-                                            <div className="flex items-center gap-3">
+                                           
+                                               <div className="flex items-center gap-3">
 
-                                                {goal.value ===
-                                                "Interview Preparation" ? (
-                                                    <BriefcaseBusiness className="h-5 w-5 text-violet-300" />
-                                                ) : goal.value ===
-                                                  "Learn New Skills" ? (
-                                                    <Sparkles className="h-5 w-5 text-violet-300" />
-                                                ) : (
-                                                    <BookOpen className="h-5 w-5 text-violet-300" />
-                                                )}
+    <BookOpen className="h-5 w-5 text-violet-300" />
 
-                                                <div>
-                                                    <div className="font-semibold">
-                                                        {
-                                                            goal.value
-                                                        }
-                                                    </div>
+    <div>
+        <div className="font-semibold">
+            {goal.value}
+        </div>
 
-                                                    <div className="mt-1 text-sm text-gray-300">
-                                                        {
-                                                            goal.description
-                                                        }
-                                                    </div>
-                                                </div>
+        <div className="mt-1 text-sm text-gray-300">
+            {goal.description}
+        </div>
+    </div>
+
 
                                             </div>
                                         </button>
