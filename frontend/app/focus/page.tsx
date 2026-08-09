@@ -24,7 +24,7 @@ import focusService, {
 } from "@/services/focus.service";
 import { useRouter } from "next/navigation";
 
-const FOCUS_DURATION_MINUTES = 25;
+const FOCUS_DURATION_MINUTES = 1;
 const FOCUS_DURATION_SECONDS =
     FOCUS_DURATION_MINUTES * 60;
 const FOCUS_TIMER_STORAGE_KEY = "learning_buddy_focus_timer";

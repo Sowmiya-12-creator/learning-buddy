@@ -219,13 +219,6 @@ export default function LoginForm() {
             </div>
 
 
-            <button
-                type="button"
-                className="w-full rounded-xl border border-white/20 bg-white/10 py-3 text-white hover:bg-white/20"
-            >
-                Continue with Google
-            </button>
-
 
             <p className="mt-6 text-center text-gray-300">
                 Don't have an account?{" "}
