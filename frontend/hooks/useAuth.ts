@@ -23,11 +23,33 @@ export function useAuth() {
     async (credentials: LoginCredentials) => {
       setIsLoading(true);
       try {
-        const { user: loggedInUser, token } = await authService.login(credentials);
-        localStorage.setItem("lb_token", token);
-        localStorage.setItem("lb_user", JSON.stringify(loggedInUser));
-        setUser(loggedInUser);
-        toast.success(`Welcome back, ${loggedInUser.name}! 🎉`);
+        const { access_token } = await authService.login(credentials);
+
+localStorage.setItem("lb_token", access_token);
+
+const userResponse = await authService.getMe();
+const currentUser = userResponse.user;
+
+const loggedInUser: User = {
+  id: currentUser.email,
+  name: currentUser.name || "",
+  email: currentUser.email,
+  level: 1,
+  xp: 0,
+  xpToNextLevel: 100,
+  streak: 0,
+  joinedAt: new Date().toISOString(),
+  subjects: [],
+  studyGoalMinutes: 0,
+  badges: [],
+  achievements: [],
+};
+
+localStorage.setItem("lb_user", JSON.stringify(loggedInUser));
+setUser(loggedInUser);
+
+
+toast.success(`Welcome back, ${loggedInUser.name || "back"}! 🎉`);
         router.push("/home");
       } catch (error: unknown) {
         const message =
@@ -45,12 +67,10 @@ export function useAuth() {
     async (credentials: RegisterCredentials) => {
       setIsLoading(true);
       try {
-        const { user: newUser, token } = await authService.register(credentials);
-        localStorage.setItem("lb_token", token);
-        localStorage.setItem("lb_user", JSON.stringify(newUser));
-        setUser(newUser);
-        toast.success("Account created! Let's get you set up. 🚀");
-        router.push("/onboarding");
+        const response = await authService.register(credentials);
+
+toast.success("Account created! Let's get you set up. 🚀");
+router.push("/login");
       } catch (error: unknown) {
         const message =
           error instanceof Error ? error.message : "Registration failed. Please try again.";

@@ -2,6 +2,7 @@
 
 import {
     FormEvent,
+    Suspense,
     useEffect,
     useRef,
     useState,
@@ -44,8 +45,7 @@ interface DisplayMessage {
 // AI Tutor Page
 // ============================================================
 
-export default function AITutorPage() {
-
+function AITutorContent() {
     const searchParams =
         useSearchParams();
 
@@ -828,5 +828,12 @@ export default function AITutorPage() {
             </div>
 
         </AppLayout>
+    );
+}
+export default function AITutorPage() {
+    return (
+        <Suspense fallback={null}>
+            <AITutorContent />
+        </Suspense>
     );
 }
