@@ -22,14 +22,15 @@ import {
 import focusService, {
     FocusStatsResponse,
 } from "@/services/focus.service";
+import { useRouter } from "next/navigation";
 
-
-const FOCUS_DURATION_MINUTES = 25;
+const FOCUS_DURATION_MINUTES = 1;
 const FOCUS_DURATION_SECONDS =
     FOCUS_DURATION_MINUTES * 60;
-
+const FOCUS_TIMER_STORAGE_KEY = "learning_buddy_focus_timer";
 
 export default function FocusPage() {
+    const router = useRouter();
 
     // ========================================================
     // Session Details
@@ -42,26 +43,49 @@ export default function FocusPage() {
         useState("");
 
 
-    // ========================================================
-    // Timer
-    // ========================================================
-
-    const [timeLeft, setTimeLeft] =
-        useState(FOCUS_DURATION_SECONDS);
-
-    const [isRunning, setIsRunning] =
-        useState(false);
-
-    const [hasStarted, setHasStarted] =
-        useState(false);
-
-    const sessionSavedRef =
-        useRef(false);
-
+        
 
     // ========================================================
-    // Stats
-    // ========================================================
+// Timer
+// ========================================================
+
+const [timeLeft, setTimeLeft] =
+    useState(FOCUS_DURATION_SECONDS);
+
+const [isRunning, setIsRunning] =
+    useState(false);
+
+const [hasStarted, setHasStarted] =
+    useState(false);
+
+const [showCompletionModal, setShowCompletionModal] =
+    useState(false);
+
+useEffect(() => {
+    const handleFocusTimerCompleted = () => {
+        setShowCompletionModal(true);
+    };
+
+    window.addEventListener(
+        "focusTimerCompleted",
+        handleFocusTimerCompleted
+    );
+
+    return () => {
+        window.removeEventListener(
+            "focusTimerCompleted",
+            handleFocusTimerCompleted
+        );
+    };
+}, []);
+
+const sessionSavedRef =
+    useRef(false);
+
+
+// ========================================================
+// Stats
+// ========================================================
 
     const [stats, setStats] =
         useState<FocusStatsResponse | null>(
@@ -178,91 +202,194 @@ export default function FocusPage() {
             loadStats,
         ]);
 
+useEffect(() => {
+    const savedTimer = localStorage.getItem(
+        FOCUS_TIMER_STORAGE_KEY
+    );
+
+    if (!savedTimer) {
+        return;
+    }
+
+    try {
+        const timerData = JSON.parse(savedTimer);
+
+        setSubject(timerData.subject || "");
+        setTopic(timerData.topic || "");
+
+        if (timerData.isRunning && timerData.endTime) {
+            const remaining = Math.max(
+                Math.ceil(
+                    (timerData.endTime - Date.now()) / 1000
+                ),
+                0
+            );
+
+            if (remaining > 0) {
+                setTimeLeft(remaining);
+                setIsRunning(true);
+                setHasStarted(true);
+            } else {
+                setTimeLeft(0);
+                setIsRunning(false);
+                setHasStarted(true);
+            }
+        } else {
+            setTimeLeft(
+                timerData.timeLeft ??
+                FOCUS_DURATION_SECONDS
+            );
+
+            setIsRunning(false);
+
+            setHasStarted(
+                timerData.hasStarted ?? false
+            );
+        }
+    } catch (error) {
+        console.error(
+            "Failed to restore focus timer:",
+            error
+        );
+
+        localStorage.removeItem(
+            FOCUS_TIMER_STORAGE_KEY
+        );
+    }
+}, []);
+
 
     // ========================================================
     // Timer Logic
     // ========================================================
 
-    useEffect(() => {
+   useEffect(() => {
+    if (!isRunning) {
+        return;
+    }
 
-        if (!isRunning) {
+    const timer = window.setInterval(() => {
+        const savedTimer = localStorage.getItem(
+            FOCUS_TIMER_STORAGE_KEY
+        );
+
+        if (!savedTimer) {
             return;
         }
 
-        if (timeLeft <= 0) {
+        try {
+            const timerData = JSON.parse(savedTimer);
 
-            setIsRunning(false);
-
-            saveCompletedSession();
-
-            return;
-        }
-
-        const timer =
-            window.setTimeout(
-                () => {
-
-                    setTimeLeft(
-                        (current) =>
-                            Math.max(
-                                current - 1,
-                                0
-                            )
-                    );
-
-                },
-                1000
+            const remaining = Math.max(
+                Math.ceil(
+                    (timerData.endTime - Date.now()) / 1000
+                ),
+                0
             );
 
-        return () =>
-            window.clearTimeout(timer);
+            setTimeLeft(remaining);
 
-    }, [
-        isRunning,
-        timeLeft,
-        saveCompletedSession,
-    ]);
+            if (remaining <= 0) {
+                clearInterval(timer);
+
+                setIsRunning(false);
+                setTimeLeft(0);
+
+                localStorage.removeItem(
+                    FOCUS_TIMER_STORAGE_KEY
+                );
+
+                saveCompletedSession();
+
+                setShowCompletionModal(true);
+            }
+        } catch (error) {
+            console.error(
+                "Focus timer error:",
+                error
+            );
+        }
+    }, 1000);
+
+    return () => {
+        clearInterval(timer);
+    };
+
+}, [
+    isRunning,
+    saveCompletedSession,
+]);
 
 
     // ========================================================
     // Controls
     // ========================================================
-
-    const handleStart = () => {
-
-        if (timeLeft === 0) {
-            return;
-        }
-
-        setError("");
-        setSuccessMessage("");
-
-        setHasStarted(true);
-        setIsRunning(true);
+const saveTimerState = (
+    nextTimeLeft: number,
+    running: boolean,
+    started: boolean
+) => {
+    const timerData = {
+        timeLeft: nextTimeLeft,
+        isRunning: running,
+        hasStarted: started,
+        subject,
+        topic,
+        endTime: running
+            ? Date.now() + nextTimeLeft * 1000
+            : null,
     };
 
+    localStorage.setItem(
+        FOCUS_TIMER_STORAGE_KEY,
+        JSON.stringify(timerData)
+    );
+};
+    const handleStart = () => {
+    if (timeLeft === 0) {
+        return;
+    }
+
+    setError("");
+    setSuccessMessage("");
+
+    setHasStarted(true);
+    setIsRunning(true);
+
+    saveTimerState(
+        timeLeft,
+        true,
+        true
+    );
+};
 
     const handlePause = () => {
+    setIsRunning(false);
 
-        setIsRunning(false);
-    };
+    saveTimerState(
+        timeLeft,
+        false,
+        true
+    );
+};
 
 
     const handleReset = () => {
+    setIsRunning(false);
 
-        setIsRunning(false);
+    setTimeLeft(FOCUS_DURATION_SECONDS);
 
-        setTimeLeft(
-            FOCUS_DURATION_SECONDS
-        );
+    setHasStarted(false);
 
-        setHasStarted(false);
+    sessionSavedRef.current = false;
 
-        sessionSavedRef.current = false;
+    setSuccessMessage("");
+    setError("");
 
-        setSuccessMessage("");
-        setError("");
-    };
+    localStorage.removeItem(
+        FOCUS_TIMER_STORAGE_KEY
+    );
+};
 
 
     // ========================================================

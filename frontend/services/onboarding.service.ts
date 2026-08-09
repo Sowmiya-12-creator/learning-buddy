@@ -2,13 +2,20 @@ import api from "./api";
 
 
 export type LearningLevel =
-    | "LKG"
-    | "Primary"
-    | "Middle School"
-    | "High School"
-    | "College"
-    | "Professional"
-    | "Lifelong Learner";
+  | "LKG"
+  | "UKG"
+  | "Class 1"
+  | "Class 2"
+  | "Class 3"
+  | "Class 4"
+  | "Class 5"
+  | "Class 6"
+  | "Class 7"
+  | "Class 8"
+  | "Class 9"
+  | "Class 10"
+  | "Class 11"
+  | "Class 12";
 
 
 export type PreferredLanguage =
@@ -17,11 +24,12 @@ export type PreferredLanguage =
 
 
 export type LearningGoal =
-    | "Learn New Skills"
-    | "Prepare for Exams"
-    | "Interview Preparation"
-    | "Improve Knowledge"
-    | "Learn as a Hobby";
+  | "Understand Concepts"
+  | "Complete Homework"
+  | "Prepare for Exams"
+  | "Practice Questions"
+  | "Improve Grades"
+  | "Daily Learning";
 
 
 export interface OnboardingData {
